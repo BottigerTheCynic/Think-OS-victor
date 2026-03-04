@@ -1,3 +1,13 @@
 EMPTY USER LEXICON
 P#DIC#IGNORE	13	#_-
 P#DIC#PUNCT	13	#?./+=:;,~\$()[]{}!*@&'
+P#DIC#WORD	0	z|I|r|o
+P#DIC#WORD	1	w|2|n
+P#DIC#WORD	2	t|u|:
+P#DIC#WORD	3	T|r|i|:
+P#DIC#WORD	4	f|o|r
+P#DIC#WORD	5	f|A|I|v
+P#DIC#WORD	6	s|I|k|s
+P#DIC#WORD	7	s|E|v|@|n
+P#DIC#WORD	8	e|I|t
+P#DIC#WORD	9	n|A|I|n
