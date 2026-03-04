@@ -55,9 +55,10 @@ namespace Anki {
     CONSOLE_VAR_ENUM(uint8_t, kProcFace_GlowFilter,                 CONSOLE_GROUP, (uint8_t)Filter::BoxFilter, "None,Box,Gaussian,Box (NEON code; size 3)");
     #endif
 
+
     #if PROCEDURALFACE_SCANLINE_FEATURE
     CONSOLE_VAR(bool,                         kProcFace_Scanlines,              CONSOLE_GROUP, true);
-    CONSOLE_VAR_RANGED(ProceduralFace::Value, kProcFace_DefaultScanlineOpacity, CONSOLE_GROUP, 0.f 0.f 1.f;
+    CONSOLE_VAR_RANGED(ProceduralFace::Value, kProcFace_DefaultScanlineOpacity, CONSOLE_GROUP, 0.f, 0.f, 1.f);
     #endif
 
     #if PROCEDURALFACE_NOISE_FEATURE
