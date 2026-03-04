@@ -14,8 +14,8 @@
   "custom_eye_color" :
   {
     "defaultValue" : {
-      "hue": 0,
-      "saturation": 0,
+      "hue": 0.97,
+      "saturation": 0.98,
       "enabled": false      
     },
     "updateCloudOnChange" : false
