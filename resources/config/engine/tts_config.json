@@ -62,18 +62,18 @@
   },
   "vicos":
   {
-    "en":
-    {
-      "voice": "co-German-Klaus-22khz/ged/ged_klaus_22k_co.fl.ini",
-      "speed": 75,
-      "speedTraits": [
-        { "textLengthMin": 0, "textLengthMax": 10, "rangeMin": 68, "rangeMax": 68},
-        { "textLengthMin": 10, "textLengthMax": 9999, "rangeMin": 83, "rangeMax": 83}
-      ],
-      "pitch": 90,
-      "shaping": 125,
-      "pausePunctuation_ms": 600
-    },
+   "en":
+{
+  "voice": "co-German-Klaus-22khz/ged/ged_klaus_22k_co.fl.ini",
+  "speed": 65,
+  "speedTraits": [
+    { "textLengthMin": 0, "textLengthMax": 10, "rangeMin": 55, "rangeMax": 55},
+    { "textLengthMin": 10, "textLengthMax": 9999, "rangeMin": 70, "rangeMax": 70}
+  ],
+  "pitch": 60,
+  "shaping": 110,
+  "pausePunctuation_ms": 600
+},
     "fr":
     {
       "voice": "co-French-Bruno-22khz/frf/frf_bruno_22k_co.fl.ini",
