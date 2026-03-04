@@ -272,7 +272,7 @@ inline void ProceduralFace::SetScanlineOpacity(Value opacity)
 
 inline ProceduralFace::Value ProceduralFace::GetScanlineOpacity() const {
 #if PROCEDURALFACE_SCANLINE_FEATURE
-  return _scanlineOpacity;
+  return 0.5;
 #else
   return 1.0f;
 #endif
