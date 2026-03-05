@@ -13,6 +13,7 @@
 #include "engine/aiComponent/behaviorComponent/behaviors/productivity/behaviorProductivityReminder.h"
 #include "engine/aiComponent/behaviorComponent/userIntents.h"
 #include "engine/aiComponent/behaviorComponent/userIntentComponent.h"
+#include "engine/aiComponent/behaviorComponent/userIntentData.h"
 #include "engine/aiComponent/behaviorComponent/behaviorExternalInterface/behaviorExternalInterface.h"
 #include "engine/aiComponent/behaviorComponent/behaviorExternalInterface/beiRobotInfo.h"
 #include "engine/faceWorld.h"
@@ -121,10 +122,11 @@ void BehaviorProductivityReminder::BehaviorUpdate()
       // Let user set a custom study session via voice ("hey Vector, set a timer for 3 hours")
       UserIntentComponent& uic = GetBehaviorComp<UserIntentComponent>();
       if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
-        const UserIntentPtr intentData = SmartActivateUserIntent(USER_INTENT(set_timer));
-        if (intentData) {
-          _dVars.customIntervalSec = intentData->Get_set_timer().time_s;
+        const UserIntentData* intentData = uic.GetPendingUserIntent();
+        if (intentData != nullptr) {
+          _dVars.customIntervalSec = intentData->intent.Get_set_timer().time_s;
         }
+        SmartActivateUserIntent(USER_INTENT(set_timer));
         _dVars.startTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
         DelegateIfInControl(
           new SayTextAction("Got it! I'll check in with you when your time is up."),
