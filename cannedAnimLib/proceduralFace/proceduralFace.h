@@ -24,11 +24,11 @@
 #include <list>
 #include <vector>
 
-#define PROCEDURALFACE_NOISE_FEATURE         1 // feature capable and enabled as num frames = 5
-#define PROCEDURALFACE_ANIMATED_SATURATION   0 // disable saturation in canned animations
-#define PROCEDURALFACE_PROCEDURAL_SATURATION 1 // only take saturation from the C++ API
+#define PROCEDURALFACE_NOISE_FEATURE         1
+#define PROCEDURALFACE_ANIMATED_SATURATION   0
+#define PROCEDURALFACE_PROCEDURAL_SATURATION 1
 #define PROCEDURALFACE_GLOW_FEATURE          0
-#define PROCEDURALFACE_SCANLINE_FEATURE      0 // feature capable but disabled by default as kProcFace_Scanlines = false
+#define PROCEDURALFACE_SCANLINE_FEATURE      1
 
 namespace Json {
   class Value;
@@ -51,7 +51,6 @@ namespace Vision{
 
 namespace Vector {
 
-// Forward declarations
 namespace ExternalInterface {
   struct DisplayProceduralFace;
 }
@@ -65,14 +64,8 @@ public:
   static const int WIDTH;
   static const int HEIGHT;
 
-  // Nominal positions/sizes for everything (these are things that aren't
-  // parameterized at dynamically, but could be if we want)
-
-  // These values are based off of V1 parameters but scaled up by a ratio of V2 dimensions : V1 dimensions (roughly 1.43x)
-  // V1 width: 128   New: 184  => 1.43x increase
-  // V1 height: 64   New:  96  => 1.5x  increase
-  static const s32 NominalEyeHeight;   //    V2:  57;  V1: 40;
-  static const s32 NominalEyeWidth;    //    V2:  43;  V1: 30;
+  static const s32 NominalEyeHeight;
+  static const s32 NominalEyeWidth;
 
   static constexpr f32 DefaultHue = 0.45f;
   static constexpr f32 DefaultSaturation = 1.0f;
@@ -80,10 +73,8 @@ public:
   using Value = f32;
   using Parameter = ProceduralEyeParameter;
 
-  // Container for the parameters for both eyes
   using EyeParamArray = std::array<Value, static_cast<size_t>(Parameter::NumParameters)>;
 
-  // Note: SCREEN Left and Right, not Cozmo's left and right!!!!
   enum WhichEye {
     Left,
     Right
@@ -97,15 +88,11 @@ public:
 
   bool operator==(const ProceduralFace& other) const;
 
-  // Allows setting an instance of ProceduralFace to be used as reset values
   static void SetResetData(const ProceduralFace& newResetData);
   static void SetBlankFaceData(const ProceduralFace& blankFace);
 
-  // Reset parameters to their nominal values. If !withBlankFace, uses the face passed to SetResetData.
-  // If withBlankFace, uses the face passed to SetBlankFaceData
   void Reset(bool withBlankFace = false);
 
-  // Read in available parameters from Json, FlatBuffers or input values
   void SetFromFlatBuf(const CozmoAnim::ProceduralFace* procFaceKeyframe);
   void SetFromJson(const Json::Value &jsonRoot);
   void SetFromValues(const std::vector<f32>& leftEyeData, const std::vector<f32>& rightEyeData,
@@ -117,100 +104,61 @@ public:
   static s32 GetNominalRightEyeX();
   static s32 GetNominalEyeY();
 
-  // Get/Set each of the above procedural parameters, for each eye
   void  SetParameter(WhichEye whichEye, Parameter param, Value value);
   Value GetParameter(WhichEye whichEye, Parameter param) const;
   const EyeParamArray& GetParameters(WhichEye whichEye) const;
   void SetParameters(WhichEye whichEye, const EyeParamArray& params);
 
-  // Set the same value to a parameter for both eyes:
   void SetParameterBothEyes(Parameter param, Value value);
 
-  // Get/Set the overall angle of the whole face (still using parameter on interval [-1,1]
   void SetFaceAngle(Value value);
   Value GetFaceAngle() const;
 
-  // Get/Set the overall face position
   void SetFacePosition(Point<2,Value> center);
   void SetFacePositionAndKeepCentered(Point<2, Value> center);
   Point<2,Value> const& GetFacePosition() const;
 
-  // Get/Set the overall face scale
   void SetFaceScale(Point<2,Value> scale);
   Point<2,Value> const& GetFaceScale() const;
 
-  // Get/Set the scanline opacity
   void SetScanlineOpacity(Value opacity);
   Value GetScanlineOpacity() const;
 
-  // Set the global hue of all faces
   static void  SetHue(Value hue);
   static Value GetHue();
   static void ResetHueToDefault();
 
-  // Set the global saturation of all faces
   static void  SetSaturation(Value saturation);
   static Value GetSaturation();
 
-  // Get an image filled with the current hue value
   static Vision::Image& GetHueImage();
   static Vision::Image* GetHueImagePtr();
 
-  // Get an image filled with a saturation value suitable for
-  // creating an HSV face image
   static Vision::Image& GetSaturationImage();
   static Vision::Image* GetSaturationImagePtr();
 
-  // Get a pointer that encapsulates the procedural face's hue and saturation images
   static std::shared_ptr<Vision::HueSatWrapper> GetHueSatWrapper();
 
-  // Initialize scanline distortion
   void InitScanlineDistorter(s32 maxAmount_pix, f32 noiseProb);
-
-  // Get rid of any scanline distortion
   void RemoveScanlineDistorter();
 
-  // Get ScanlineDistortion component. Returns nullptr if there is no scanline distortion
-  // (i.e. if InitScanlineDistortion has not been called)
   ScanlineDistorter* GetScanlineDistorter()             { return _scanlineDistorter.get(); }
   const ScanlineDistorter* GetScanlineDistorter() const { return _scanlineDistorter.get(); }
 
-  // Set this face's parameters to values interpolated from two other faces.
-  //   When BlendFraction == 0.0, the parameters will be equal to face1's.
-  //   When BlendFraction == 1.0, the parameters will be equal to face2's.
-  //   TODO: Support other types of interpolation besides simple linear
-  //   Note: 0.0 <= BlendFraction <= 1.0!
-  // If usePupilSaccades==true, pupil positions don't interpolate smoothly but
-  //   instead jump when fraction crossed 0.5.
   void Interpolate(const ProceduralFace& face1,
                    const ProceduralFace& face2,
                    float fraction,
                    bool usePupilSaccades = false);
 
-  // Adjust settings to make the robot look at a give place. You specify the
-  // (x,y) position of the face center and the normalize factor which is the
-  // maximum distance in x or y this LookAt is relative to. The eyes are then
-  // shifted, scaled, and squeezed together as needed to create the effect of
-  // the robot looking there.
-  //  - lookUpMaxScale controls how big the eyes get when looking up (negative y)
-  //  - lookDownMinScale controls how small the eyes get when looking down (positive y)
-  //  - outerEyeScaleIncrease controls the differentiation between inner/outer eye height
-  //    when looking left or right
   void LookAt(f32 x, f32 y, f32 xmax, f32 ymax,
               f32 lookUpMaxScale = 1.1f, f32 lookDownMinScale=0.85f, f32 outerEyeScaleIncrease=0.1f);
 
-  // Combine the input params with those from our instance
   ProceduralFace& Combine(const ProceduralFace& otherFace);
 
-  // E.g. for unit tests
   static void EnableClippingWarning(bool enable);
 
-  // Get the bounding edge of the current eyes in screen pixel space, at their current
-  // size and position, without taking into account the current FacePosition (a.k.a.
-  // face center) or face angle.
   void GetEyeBoundingBox(Value& xmin, Value& xmax, Value& ymin, Value& ymax);
 
-  // Initialize console variables for this object
   void RegisterFaceWithConsoleVars();
 
 private:
@@ -225,7 +173,7 @@ private:
   Point<2,Value>  _faceScale       = 1.0f;
   Point<2,Value>  _faceCenter      = 0.0f;
 #if PROCEDURALFACE_SCANLINE_FEATURE
-  Value           _scanlineOpacity; // set to default from console var in constructor
+  Value           _scanlineOpacity;
 #endif
 
   static Value    _hue;
@@ -246,12 +194,10 @@ private:
   static ProceduralFace* _blankFaceData;
   static std::function<void(const char*,Value,Value,Value)> ClipWarnFcn;
 
-  // Console variables managed by this object
   using ConsoleVarPtr = std::unique_ptr<Anki::Util::IConsoleVariable>;
   using ConsoleVarPtrList = std::list<ConsoleVarPtr>;
   ConsoleVarPtrList _consoleVars;
 
-  // Add a console variable to be managed by this object
   template<class T>
   void AddConsoleVar(T & var, const char * name, const char * group, const T & minVal, const T & maxVal);
 
@@ -289,7 +235,6 @@ inline ProceduralFace::Value ProceduralFace::GetFaceAngle() const {
 }
 
 inline void ProceduralFace::SetFaceAngle(Value angle_deg) {
-  // TODO: Define face angle limits?
   _faceAngle_deg = angle_deg;
 }
 
@@ -327,7 +272,7 @@ inline void ProceduralFace::SetScanlineOpacity(Value opacity)
 
 inline ProceduralFace::Value ProceduralFace::GetScanlineOpacity() const {
 #if PROCEDURALFACE_SCANLINE_FEATURE
-  return _scanlineOpacity;
+  return 2.0;
 #else
   return 1.0f;
 #endif
@@ -340,7 +285,6 @@ inline void ProceduralFace::SetHue(Value hue) {
     ClipWarnFcn("Hue", _hue, Value(0), Value(1));
     _hue = Util::Clamp(_hue, Value(0), Value(1));
   }
-  // Update the hue image (used for displaying FaceAnimations):
   GetHueImage().FillWith(static_cast<u8>(_hue * std::numeric_limits<u8>::max()));
 }
 
@@ -359,7 +303,6 @@ inline void ProceduralFace::SetSaturation(Value saturation) {
     ClipWarnFcn("Saturation", _saturation, Value(0), Value(1));
     _saturation = Util::Clamp(_saturation, Value(0), Value(1));
   }
-  // Update the saturation image (used for displaying FaceAnimations):
   GetSaturationImage().FillWith(static_cast<u8>(_saturation * std::numeric_limits<u8>::max()));
 }
 
