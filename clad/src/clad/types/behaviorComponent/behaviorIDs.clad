@@ -19,6 +19,7 @@ enum uint_16 BehaviorID {
   AcousticTestMode,
   CubeDrive,
   CubeDriveConnectionGate,
+  CubeDriveConnectionGate,
   DevBaseBehavior,
   DevBatteryLogging,
   DevCubeSpinner,
@@ -364,6 +365,9 @@ enum uint_16 BehaviorID {
   PossibleIntentionalPerformance,
   PossibleUnintentionalPerformance,
 
+  // victorBehaviorTree
+  PetDetection,
+
   // victorBehaviorTree/prDemo
   PRDemoBigGreeting,
   PRDemoComeHere,
@@ -488,7 +492,6 @@ enum uint_16 BehaviorID {
   WeatherTextToSpeech,
 
   // victorBehaviorTree
-  PetDetection,
   WireTest,
 }
 

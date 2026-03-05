@@ -1,11 +1,19 @@
-{
-  "simple_voice_responses": [
+"simple_voice_responses": [
     {
       "cloud_intent": "intent_greeting_hello",
       "response": {
         "anim_group": "ag_greeting_hello",
         "emotion_event": "RespondToShortVoiceCommand",
         "active_feature": "ReactToHello"
+      }
+    },
+    {
+      "cloud_intent": "intent_productivity_reminder",
+      "response": {
+        "anim_group": "GreetAfterLongTime",
+        "emotion_event": "RespondToShortVoiceCommand",
+        "active_feature": "ReactToHello",
+        "disable_wakeword_turn": true
       }
     },
     {

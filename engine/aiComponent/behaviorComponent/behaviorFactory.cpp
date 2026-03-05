@@ -131,6 +131,7 @@
 #include "engine/aiComponent/behaviorComponent/behaviors/photoTaking/behaviorTakeAPhotoCoordinator.h"
 #include "engine/aiComponent/behaviorComponent/behaviors/prDemo/behaviorPRDemo.h"
 #include "engine/aiComponent/behaviorComponent/behaviors/prDemo/behaviorPRDemoBase.h"
+#include "engine/aiComponent/behaviorComponent/behaviors/productivity/behaviorProductivityReminder.h"
 #include "engine/aiComponent/behaviorComponent/behaviors/proxBehaviors/behaviorProxGetToDistance.h"
 #include "engine/aiComponent/behaviorComponent/behaviors/reactions/behaviorAskForHelp.h"
 #include "engine/aiComponent/behaviorComponent/behaviors/reactions/behaviorCheckForAndReactToSalientPoint.h"
@@ -931,6 +932,12 @@ ICozmoBehaviorPtr BehaviorFactory::CreateBehavior(const Json::Value& config)
     case BehaviorClass::PRDemoBase:
     {
       newBehavior = ICozmoBehaviorPtr(new BehaviorPRDemoBase(config));
+      break;
+    }
+    
+    case BehaviorClass::ProductivityReminder:
+    {
+      newBehavior = ICozmoBehaviorPtr(new BehaviorProductivityReminder(config));
       break;
     }
     
