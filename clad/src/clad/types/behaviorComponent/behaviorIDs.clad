@@ -19,7 +19,7 @@ enum uint_16 BehaviorID {
   AcousticTestMode,
   CubeDrive,
   CubeDriveConnectionGate,
-  CubeDriveConnectionGate,
+  CubeDriveCoordinator,
   DevBaseBehavior,
   DevBatteryLogging,
   DevCubeSpinner,
@@ -68,6 +68,9 @@ enum uint_16 BehaviorID {
   // devBehaviors
   SnakeGame,
   TestStackMonitors,
+
+  // productivity
+  ProductivityReminder,
 
   // victorBehaviorTree/alexa
   Alexa,

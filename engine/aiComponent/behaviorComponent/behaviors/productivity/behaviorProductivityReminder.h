@@ -55,7 +55,7 @@ private:
 
   struct DynamicVariables {
     DynamicVariables();
-    float secondsSinceLastReminder = 0.f;
+    float startTime = 0.f;         // wall time when current session started
     float customIntervalSec = 0.f; // 0 means use default from JSON config
     State state = State::Idle;
   };
