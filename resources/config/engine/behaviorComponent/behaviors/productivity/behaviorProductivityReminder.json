@@ -1,0 +1,6 @@
+{
+  "behaviorClass": "ProductivityReminder",
+  "behaviorID": "ProductivityReminder",
+  "associatedActiveFeature": "NoFeature",
+  "reminderIntervalMinutes": 52
+}

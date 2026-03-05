@@ -50,12 +50,13 @@ private:
 
   struct InstanceConfig {
     InstanceConfig();
-    static constexpr float kReminderIntervalSec = 3120.f; // 52 minutes
+    float reminderIntervalSec = 3120.f; // default 52 minutes, overridable from JSON
   };
 
   struct DynamicVariables {
     DynamicVariables();
     float secondsSinceLastReminder = 0.f;
+    float customIntervalSec = 0.f; // 0 means use default from JSON config
     State state = State::Idle;
   };
 
