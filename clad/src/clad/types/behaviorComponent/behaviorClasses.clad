@@ -197,6 +197,9 @@ enum uint_8 BehaviorClass {
   PRDemo,
   PRDemoBase,
 
+  // productivity
+  ProductivityReminder,
+
   // proxBehaviors
   ProxGetToDistance,
 
