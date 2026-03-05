@@ -1,7 +1,7 @@
 /**
  * File: BehaviorProductivityReminder.cpp
  *
- * Author: bottiger
+ * Author: BottigerTheCynic
  * Created: 2026-03-04
  *
  * Description: Hourly productivity reminder with voice response and reward
@@ -36,6 +36,9 @@ BehaviorProductivityReminder::DynamicVariables::DynamicVariables()
 BehaviorProductivityReminder::BehaviorProductivityReminder(const Json::Value& config)
  : ICozmoBehavior(config)
 {
+  if (!config["reminderIntervalMinutes"].isNull()) {
+    _iConfig.reminderIntervalSec = config["reminderIntervalMinutes"].asFloat() * 60.f;
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -59,7 +62,10 @@ void BehaviorProductivityReminder::GetAllDelegates(std::set<IBehavior*>& delegat
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void BehaviorProductivityReminder::GetBehaviorJsonKeys(std::set<const char*>& expectedKeys) const
 {
-  // No JSON config keys needed
+  const char* list[] = {
+    "reminderIntervalMinutes"
+  };
+  expectedKeys.insert(std::begin(list), std::end(list));
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -109,8 +115,27 @@ void BehaviorProductivityReminder::BehaviorUpdate()
   {
     case State::Idle:
     {
+      // Let user set a custom study session length via voice ("hey Vector, set a timer for 3 hours")
+      auto& uic = GetBEI().GetUserIntentComponent();
+      if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
+        UserIntent_set_timer intentData;
+        SmartActivateUserIntent(USER_INTENT(set_timer), intentData);
+        _dVars.customIntervalSec = intentData.time_s;
+        _dVars.secondsSinceLastReminder = 0.f;
+        DelegateIfInControl(
+          new SayTextAction("Got it! I'll check in with you when your time is up."),
+          nullptr
+        );
+        break;
+      }
+
+      // Use custom time if set, otherwise fall back to JSON config default
+      const float interval = (_dVars.customIntervalSec > 0.f)
+        ? _dVars.customIntervalSec
+        : _iConfig.reminderIntervalSec;
+
       _dVars.secondsSinceLastReminder += GetBEI().GetRobotInfo().GetDeltaTimeSeconds();
-      if (_dVars.secondsSinceLastReminder >= InstanceConfig::kReminderIntervalSec) {
+      if (_dVars.secondsSinceLastReminder >= interval) {
         _dVars.secondsSinceLastReminder = 0.f;
         TransitionToAskIfDone();
       }
