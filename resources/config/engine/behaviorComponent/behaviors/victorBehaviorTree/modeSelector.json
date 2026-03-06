@@ -1,4 +1,8 @@
-"behaviors": [
+{
+  "behaviorID" : "ModeSelector",
+  "behaviorClass" : "DispatcherStrictPriority",
+  "interruptActiveBehavior": true,
+  "behaviors": [
     "SingletonPoweringRobotOff",
     "AlexaSignInOut",
     "Alexa",
@@ -6,5 +10,7 @@
     "SDKOverrideAll",
     "ShutUpMode",
     "QuietMode",
+    "ProductivityReminder",
     "SleepCycle"
   ]
+}
