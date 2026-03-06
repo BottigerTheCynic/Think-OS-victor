@@ -71,17 +71,35 @@ void BehaviorProductivityReminder::GetBehaviorJsonKeys(std::set<const char*>& ex
   expectedKeys.insert(std::begin(list), std::end(list));
 }
 
+// Static so timer persists across activations/deactivations
+static float sSessionStartTime  = -1.f;
+static float sCustomIntervalSec = 0.f;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool BehaviorProductivityReminder::WantsToBeActivatedBehavior() const
 {
-  return true;
+  // Only activate when the timer has actually elapsed
+  if (sSessionStartTime < 0.f) {
+    return false;
+  }
+  const float interval = (sCustomIntervalSec > 0.f)
+    ? sCustomIntervalSec
+    : _iConfig.reminderIntervalSec;
+  const float now = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+  return (now - sSessionStartTime) >= interval;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void BehaviorProductivityReminder::OnBehaviorActivated()
 {
   _dVars = DynamicVariables();
-  _dVars.startTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+  // Restore custom interval from static storage
+  _dVars.customIntervalSec = sCustomIntervalSec;
+  // Initialize session start time if not already set
+  if (sSessionStartTime < 0.f) {
+    sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+  }
+  _dVars.startTime = sSessionStartTime;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -124,10 +142,12 @@ void BehaviorProductivityReminder::BehaviorUpdate()
       if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
         const UserIntentData* intentData = uic.GetPendingUserIntent();
         if (intentData != nullptr) {
-          _dVars.customIntervalSec = intentData->intent.Get_set_timer().time_s;
+          sCustomIntervalSec = intentData->intent.Get_set_timer().time_s;
+          _dVars.customIntervalSec = sCustomIntervalSec;
         }
         SmartActivateUserIntent(USER_INTENT(set_timer));
-        _dVars.startTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+        sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+        _dVars.startTime = sSessionStartTime;
         DelegateIfInControl(
           new SayTextAction("Got it! I'll check in with you when your time is up."),
           SimpleCallback()
@@ -213,7 +233,10 @@ void BehaviorProductivityReminder::TransitionToIdle()
 {
   _dVars.state = State::Idle;
   _dVars.customIntervalSec = 0.f;
-  _dVars.startTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+  sCustomIntervalSec = 0.f;
+  // Reset timer so it starts counting again from now
+  sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+  _dVars.startTime = sSessionStartTime;
 }
 
 } // namespace Vector
