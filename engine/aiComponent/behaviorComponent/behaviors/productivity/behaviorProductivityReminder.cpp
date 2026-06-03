@@ -103,6 +103,30 @@ void BehaviorProductivityReminder::OnBehaviorActivated()
     sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
   }
   _dVars.startTime = sSessionStartTime;
+
+  // FIX: handle set_timer here, not in BehaviorUpdate — the intent is guaranteed
+  // to still be pending at activation time since it's what triggered us.
+  // By the next BehaviorUpdate tick it may already be consumed.
+  UserIntentComponent& uic = GetBehaviorComp<UserIntentComponent>();
+  if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
+    float timerSec = 0.f;
+    const UserIntentData* intentData = uic.GetPendingUserIntent();
+    if (intentData != nullptr) {
+      timerSec = intentData->intent.Get_set_timer().time_s;
+    }
+    SmartActivateUserIntent(USER_INTENT(set_timer));
+    if (timerSec > 0.f) {
+      sCustomIntervalSec = timerSec;
+      _dVars.customIntervalSec = sCustomIntervalSec;
+      // Restart the session clock from this moment
+      sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+      _dVars.startTime = sSessionStartTime;
+    }
+    DelegateIfInControl(
+      new SayTextAction("Got it! I'll check in with you when your time is up."),
+      SimpleCallback()
+    );
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -144,29 +168,6 @@ void BehaviorProductivityReminder::BehaviorUpdate()
   {
     case State::Idle:
     {
-      // Let user set a custom study session via voice ("hey Vector, set a timer for 3 hours")
-      UserIntentComponent& uic = GetBehaviorComp<UserIntentComponent>();
-      if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
-        // FIX: copy the value out BEFORE SmartActivateUserIntent consumes the intent data
-        float timerSec = 0.f;
-        const UserIntentData* intentData = uic.GetPendingUserIntent();
-        if (intentData != nullptr) {
-          timerSec = intentData->intent.Get_set_timer().time_s;
-        }
-        SmartActivateUserIntent(USER_INTENT(set_timer));
-        if (timerSec > 0.f) {
-          sCustomIntervalSec = timerSec;
-          _dVars.customIntervalSec = sCustomIntervalSec;
-        }
-        sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
-        _dVars.startTime = sSessionStartTime;
-        DelegateIfInControl(
-          new SayTextAction("Got it! I'll check in with you when your time is up."),
-          SimpleCallback()
-        );
-        break;
-      }
-
       // Use custom time if set, otherwise use JSON config default
       const float interval = (_dVars.customIntervalSec > 0.f)
         ? _dVars.customIntervalSec
