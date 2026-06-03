@@ -71,14 +71,17 @@ void BehaviorProductivityReminder::GetBehaviorJsonKeys(std::set<const char*>& ex
   expectedKeys.insert(std::begin(list), std::end(list));
 }
 
-// Static so timer persists across activations/deactivations
+// Static so timer survives deactivation/reactivation cycles.
+// NOTE: If multiple instances ever exist they would share this state — keep to one instance in the tree.
 static float sSessionStartTime  = -1.f;
 static float sCustomIntervalSec = 0.f;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool BehaviorProductivityReminder::WantsToBeActivatedBehavior() const
 {
-  // Only activate when the timer has actually elapsed
+  // sSessionStartTime < 0 means the session has never been bootstrapped.
+  // Return false until OnBehaviorActivated has been called at least once
+  // (e.g. by a parent behavior on robot startup).
   if (sSessionStartTime < 0.f) {
     return false;
   }
@@ -95,7 +98,7 @@ void BehaviorProductivityReminder::OnBehaviorActivated()
   _dVars = DynamicVariables();
   // Restore custom interval from static storage
   _dVars.customIntervalSec = sCustomIntervalSec;
-  // Initialize session start time if not already set
+  // Bootstrap: initialize session start time on very first activation
   if (sSessionStartTime < 0.f) {
     sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
   }
@@ -105,6 +108,10 @@ void BehaviorProductivityReminder::OnBehaviorActivated()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void BehaviorProductivityReminder::OnBehaviorDeactivated()
 {
+  // FIX: sync timer state back to statics BEFORE wiping _dVars so the
+  // session clock is never lost between activations.
+  sSessionStartTime  = _dVars.startTime;
+  sCustomIntervalSec = _dVars.customIntervalSec;
   _dVars = DynamicVariables();
 }
 
@@ -140,12 +147,17 @@ void BehaviorProductivityReminder::BehaviorUpdate()
       // Let user set a custom study session via voice ("hey Vector, set a timer for 3 hours")
       UserIntentComponent& uic = GetBehaviorComp<UserIntentComponent>();
       if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
+        // FIX: copy the value out BEFORE SmartActivateUserIntent consumes the intent data
+        float timerSec = 0.f;
         const UserIntentData* intentData = uic.GetPendingUserIntent();
         if (intentData != nullptr) {
-          sCustomIntervalSec = intentData->intent.Get_set_timer().time_s;
-          _dVars.customIntervalSec = sCustomIntervalSec;
+          timerSec = intentData->intent.Get_set_timer().time_s;
         }
         SmartActivateUserIntent(USER_INTENT(set_timer));
+        if (timerSec > 0.f) {
+          sCustomIntervalSec = timerSec;
+          _dVars.customIntervalSec = sCustomIntervalSec;
+        }
         sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
         _dVars.startTime = sSessionStartTime;
         DelegateIfInControl(
@@ -174,13 +186,28 @@ void BehaviorProductivityReminder::BehaviorUpdate()
       if (uic.IsUserIntentPending(USER_INTENT(imperative_affirmative))) {
         SmartActivateUserIntent(USER_INTENT(imperative_affirmative));
         TransitionToReward();
+        break; // FIX: explicit break so we don't fall into the timeout check below
       }
-      else if (uic.IsUserIntentPending(USER_INTENT(imperative_negative))) {
+
+      if (uic.IsUserIntentPending(USER_INTENT(imperative_negative))) {
         SmartActivateUserIntent(USER_INTENT(imperative_negative));
         DelegateIfInControl(
           new SayTextAction("Okay, keep going! You've got this!"),
           [this]() { TransitionToIdle(); }
         );
+        break; // FIX: explicit break
+      }
+
+      // FIX: timeout — if the user never responds, don't hang forever
+      if (_dVars.waitDeadlineSec > 0.f) {
+        const float now = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+        if (now >= _dVars.waitDeadlineSec) {
+          _dVars.waitDeadlineSec = -1.f;
+          DelegateIfInControl(
+            new SayTextAction("I'll check in with you later."),
+            [this]() { TransitionToIdle(); }
+          );
+        }
       }
       break;
     }
@@ -200,8 +227,18 @@ void BehaviorProductivityReminder::TransitionToAskIfDone()
     new TriggerAnimationAction(AnimationTrigger::HeldOnPalmPutDownRelaxed),
     [this]() {
       DelegateIfInControl(
-        new SayTextAction("Are you done with your work?"),
-        SimpleCallback()
+        new SayTextAction("Hey! Are you done with your work?"),
+        [this]() {
+          // FIX: record the response deadline so BehaviorUpdate can time out
+          const float now = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();
+          _dVars.waitDeadlineSec = now + kResponseWindowSec;
+
+          // Play listening animation so the robot visually signals it's waiting
+          DelegateIfInControl(
+            new TriggerAnimationAction(AnimationTrigger::ListeningGetIn),
+            SimpleCallback()
+          );
+        }
       );
     }
   );
@@ -233,6 +270,7 @@ void BehaviorProductivityReminder::TransitionToIdle()
 {
   _dVars.state = State::Idle;
   _dVars.customIntervalSec = 0.f;
+  _dVars.waitDeadlineSec   = -1.f;
   sCustomIntervalSec = 0.f;
   // Reset timer so it starts counting again from now
   sSessionStartTime = BaseStationTimer::getInstance()->GetCurrentTimeInSeconds();

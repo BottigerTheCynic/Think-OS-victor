@@ -42,6 +42,9 @@ protected:
 
 private:
 
+  // How long the robot waits for a yes/no response before giving up
+  static constexpr float kResponseWindowSec = 8.f;
+
   enum class State {
     Idle,         // counting down timer
     AskingIfDone, // asked question, waiting for yes/no
@@ -55,9 +58,10 @@ private:
 
   struct DynamicVariables {
     DynamicVariables();
-    float startTime = 0.f;         // wall time when current session started
-    float customIntervalSec = 0.f; // 0 means use default from JSON config
-    State state = State::Idle;
+    float startTime         = 0.f;  // wall time when current session started
+    float customIntervalSec = 0.f;  // 0 means use default from JSON config
+    float waitDeadlineSec   = -1.f; // absolute time by which a response is expected; -1 = not waiting
+    State state             = State::Idle;
   };
 
   InstanceConfig _iConfig;

@@ -2,8 +2,10 @@
   "behaviorClass": "ProductivityReminder",
   "behaviorID": "ProductivityReminder",
   "associatedActiveFeature": "NoFeature",
-  "reminderIntervalMinutes": 1,
+  "reminderIntervalMinutes": 52,
   "respondToUserIntents": [
-    {"type": "set_timer"}
+    {"type": "set_timer"},
+    {"type": "imperative_affirmative"},
+    {"type": "imperative_negative"}
   ]
 }
