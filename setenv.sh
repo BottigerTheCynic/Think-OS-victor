@@ -17,7 +17,7 @@ alias victor_deploy_run="cd ${GIT_PROJ_ROOT} && ${GIT_PROJ_ROOT}/project/victor/
 function IS_ROBOT_IP_THERE() {
     if [[ ! -f "$GIT_PROJ_ROOT/robot_ip.txt" ]]; then
         echo "Robot IP file doesn't exist. What is your robot's IP?"
-        echo -n "(XXX.XXX.XXX.XXX): "
+        echo -n "(192.168.1.231): "
         read ipaddr
         echo "$ipaddr" > "$GIT_PROJ_ROOT/robot_ip.txt"
     fi
