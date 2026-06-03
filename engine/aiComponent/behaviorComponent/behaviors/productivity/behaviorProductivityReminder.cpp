@@ -235,7 +235,7 @@ void BehaviorProductivityReminder::TransitionToAskIfDone()
 
           // Play listening animation so the robot visually signals it's waiting
           DelegateIfInControl(
-            new TriggerAnimationAction(AnimationTrigger::ListeningGetIn),
+            new TriggerAnimationAction(AnimationTrigger::VC_ListeningGetIn),
             SimpleCallback()
           );
         }
