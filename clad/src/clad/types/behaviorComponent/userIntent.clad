@@ -196,6 +196,7 @@ union dupes_allowed UserIntent
   UserIntent_Void               test_user_intent_2,
   UserIntent_Test_Name          test_name,
   UserIntent_Test_TimeWithUnits test_timeWithUnits,
+  UserIntent_Void             productivity_session,
 }
 
 } // namespace Vector

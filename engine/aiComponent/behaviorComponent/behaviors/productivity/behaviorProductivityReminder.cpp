@@ -108,13 +108,13 @@ void BehaviorProductivityReminder::OnBehaviorActivated()
   // to still be pending at activation time since it's what triggered us.
   // By the next BehaviorUpdate tick it may already be consumed.
   UserIntentComponent& uic = GetBehaviorComp<UserIntentComponent>();
-  if (uic.IsUserIntentPending(USER_INTENT(set_timer))) {
+  if (uic.IsUserIntentPending(USER_INTENT(productivity_session))) {
     float timerSec = 0.f;
     const UserIntentData* intentData = uic.GetPendingUserIntent();
     if (intentData != nullptr) {
-      timerSec = intentData->intent.Get_set_timer().time_s;
+      timerSec = intentData->intent.Get_productivity_session();
     }
-    SmartActivateUserIntent(USER_INTENT(set_timer));
+    GetUserIntentIfActive(USER_INTENT(productivity_session));
     if (timerSec > 0.f) {
       sCustomIntervalSec = timerSec;
       _dVars.customIntervalSec = sCustomIntervalSec;

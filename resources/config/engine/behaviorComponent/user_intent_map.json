@@ -9,15 +9,6 @@
       }
     },
     {
-      "cloud_intent": "intent_productivity_reminder",
-      "response": {
-        "anim_group": "GreetAfterLongTime",
-        "emotion_event": "RespondToShortVoiceCommand",
-        "active_feature": "ReactToHello",
-        "disable_wakeword_turn": true
-      }
-    },
-    {
       "cloud_intent": "intent_imperative_forward",
       "response": {
         "anim_group": "ag_movement_forward_01",
@@ -213,6 +204,10 @@
       "cloud_intent": "intent_message_playmessage_extend",
       "app_intent": "intent_message_playmessage",
       "feature_gate": "Messaging"
+    },
+    {
+      "cloud_intent": "intent_productivity_reminder",
+      "user_intent": "productivity_session"
     },
     {
       "user_intent": "explore_start",

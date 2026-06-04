@@ -4,7 +4,7 @@
   "associatedActiveFeature": "NoFeature",
   "reminderIntervalMinutes": 52,
   "respondToUserIntents": [
-    {"type": "set_timer"},
+    {"type": "productivity_session"},
     {"type": "imperative_affirmative"},
     {"type": "imperative_negative"}
   ]
