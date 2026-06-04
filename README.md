@@ -22,6 +22,10 @@ Any feature added here should be productivity-focused or otherwise generally use
 - 3rd-party library upgrades
 - Code documentation
 - Optimizations
+ ## QUICK NOTE!
+
+Some of this project was edited and has been used by Claude I have only used claude for py script on the intents and behaviors nothing else, so don't hate me
+
 
 -----
 
